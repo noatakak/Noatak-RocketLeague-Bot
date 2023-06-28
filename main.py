@@ -22,7 +22,7 @@ from rlgym.utils.terminal_conditions.common_conditions import GoalScoredConditio
 from Noatak_Training.noatak_training_objects import NoatakReward
 
 # Set training time and section lengths
-num_steps = 20000
+num_steps = 20000000
 section_steps = (num_steps/2)
 reset_seconds = 60
 
@@ -68,10 +68,10 @@ def main():
     
     # Intiialize the environment
     env = SB3MultipleInstanceEnv(match_func_or_matches=get_match,
-                                 num_instances=1, wait_time=20)
+                                 num_instances=10, wait_time=20)
     
     # Define the model
-    model = PPO(policy="MlpPolicy", env=env, verbose=1)
+    model = PPO(policy="MlpPolicy", env=env, verbose=1, device='cuda')
 
     # Inject policy into model (if using input file)
     if input_path != "":
@@ -88,7 +88,7 @@ def main():
     model.learn(total_timesteps=int(num_steps), progress_bar=True)
 
     # Save the model 
-    policy = Policy(model.policy.mlp_extractor, model.policy.action_net, model.policy.value_net).to('cpu')
+    policy = Policy(model.policy.mlp_extractor, model.policy.action_net, model.policy.value_net).to('cuda')
     model_scripted = torch.jit.script(policy)
 
     cur_dir = os.path.dirname(os.path.realpath(__file__))
