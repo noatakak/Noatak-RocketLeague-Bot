@@ -8,6 +8,7 @@ from rlgym.utils.gamestates import GameState, PlayerData
 
 from rlgym.utils.reward_functions import CombinedReward
 from rlgym.utils.reward_functions.common_rewards import EventReward
+from rlgym.utils.reward_functions.common_rewards import SaveBoostReward
 from rlgym.utils.reward_functions.common_rewards.ball_goal_rewards import \
     LiuDistanceBallToGoalReward, VelocityBallToGoalReward, BallYCoordinateReward
 from rlgym.utils.reward_functions.common_rewards.player_ball_rewards import \
@@ -31,27 +32,28 @@ class NoatakReward(RewardFunction):
         # Define general EventReward
         self.generalReward = EventReward(goal=1, team_goal=0.5, concede=-1, touch=.5, shot=0.5, save=1,
                                          demo=0.25, boost_pickup=0.5)
+        self.saveBoost = SaveBoostReward()
 
         # Section 1: Train to approach ball
-        self.section1Functions = [self.generalReward, FaceBallReward(), TouchBallReward(), VelocityPlayerToBallReward(), LiuDistancePlayerToBallReward()]
-        self.section1Weights = [0.25, 0.5, 1, 1, 1]
+        self.section1Functions = [self.generalReward, self.saveBoost, FaceBallReward(), TouchBallReward(), VelocityPlayerToBallReward(), LiuDistancePlayerToBallReward()]
+        self.section1Weights = [0.25, .5, 0.5, 1, 1, 1]
         self.section1Reward = CombinedReward(reward_functions=self.section1Functions,
                                              reward_weights=self.section1Weights)
 
         # Section 2: Train to get ball in the air
-        self.section2Functions = [self.generalReward, BallYCoordinateReward(), TouchBallReward(aerial_weight=.5)]
-        self.section2Weights = [0.5, 0.75, 0.5]
-        self.section2Reward = CombinedReward(reward_functions=self.section2Functions,
-                                             reward_weights=self.section2Weights)
+        # self.section2Functions = [self.generalReward, BallYCoordinateReward(), TouchBallReward(aerial_weight=.5)]
+        # self.section2Weights = [0.5, 0.75, 0.5]
+        # self.section2Reward = CombinedReward(reward_functions=self.section2Functions,
+        #                                      reward_weights=self.section2Weights)
 
         # Section 3: Train to get ball in opponent goal
-        self.section3Functions = [self.generalReward, LiuDistanceBallToGoalReward(), VelocityBallToGoalReward()]
-        self.section3Weights = [1, 1, 1]
+        self.section3Functions = [self.generalReward, self.saveBoost, LiuDistanceBallToGoalReward(), VelocityBallToGoalReward()]
+        self.section3Weights = [1, 1, 1, 1]
         self.section3Reward = CombinedReward(reward_functions=self.section3Functions,
                                              reward_weights=self.section3Weights)
 
         # List of reward steps
-        alternating_reward_steps = [self.section1Reward, rewardTransition, self.section2Reward, rewardTransition, self.section3Reward]
+        alternating_reward_steps = [self.section1Reward, rewardTransition, self.section3Reward]
 
         # Transition between reward functions, set mode to STEP, TOUCH, or GOAL
         self.anneal = AnnealRewards(*alternating_reward_steps, mode=AnnealRewards.STEP)
