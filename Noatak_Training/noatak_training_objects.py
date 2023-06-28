@@ -36,7 +36,7 @@ class NoatakReward(RewardFunction):
 
         # Section 1: Train to approach ball
         self.section1Functions = [self.generalReward, self.saveBoost, FaceBallReward(), TouchBallReward(), VelocityPlayerToBallReward(), LiuDistancePlayerToBallReward()]
-        self.section1Weights = [0.25, .5, 0.5, 1, 1, 1]
+        self.section1Weights = [0.25, .25, 0.75, 2, 1, 2]
         self.section1Reward = CombinedReward(reward_functions=self.section1Functions,
                                              reward_weights=self.section1Weights)
 
@@ -48,7 +48,7 @@ class NoatakReward(RewardFunction):
 
         # Section 3: Train to get ball in opponent goal
         self.section3Functions = [self.generalReward, self.saveBoost, LiuDistanceBallToGoalReward(), VelocityBallToGoalReward()]
-        self.section3Weights = [1, 1, 1, 1]
+        self.section3Weights = [1, .25, 2, 1]
         self.section3Reward = CombinedReward(reward_functions=self.section3Functions,
                                              reward_weights=self.section3Weights)
 
