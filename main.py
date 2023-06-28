@@ -22,7 +22,7 @@ from rlgym.utils.terminal_conditions.common_conditions import GoalScoredConditio
 from Noatak_Training.noatak_training_objects import NoatakReward
 
 # Set training time and section lengths
-num_steps = 1000000
+num_steps = 20000
 section_steps = (num_steps/2)
 reset_seconds = 60
 
@@ -52,8 +52,8 @@ def get_match():
 
 def main():
 
-    # input file
-    input_path = "TrainingStarted-Date_06-27_Time_22-44"
+    # input file example: "TrainingStarted-Date_06-27_Time_22-44"
+    input_path = ""
     # Input policy if name is defined.
     if input_path != "":
         print("Loading model from file...")
