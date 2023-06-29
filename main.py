@@ -11,6 +11,7 @@ from stable_baselines3 import PPO
 from rlgym_tools.sb3_utils import SB3SingleInstanceEnv
 from rlgym_tools.sb3_utils import SB3MultipleInstanceEnv
 
+import rlgym
 from rlgym.envs import Match
 from rlgym.utils.reward_functions import DefaultReward
 from rlgym.utils.reward_functions.common_rewards.ball_goal_rewards import LiuDistanceBallToGoalReward
@@ -22,6 +23,50 @@ from rlgym.utils.action_parsers import DefaultAction
 from rlgym.utils.terminal_conditions.common_conditions import GoalScoredCondition
 
 from Noatak_Training.noatak_training_objects import NoatakReward
+
+
+# Attempted to make a viewing thread.
+
+# class ViewingThread(threading.Thread):
+#     def __init__(self):
+#         threading.Thread.__init__(self)
+#         self.training_completed = threading.Event()
+#         self.gym_env = rlgym.make(
+#             use_injector=True, 
+#             spawn_opponents=True,
+#             game_speed=1,
+#             reward_fn=NoatakReward(10000)
+#         )
+
+#         self.env = SB3SingleInstanceEnv(self.gym_env)
+#         self.model = PPO("MlpPolicy", env=self.env, verbose=1)
+
+#     def notify_training_complete(self):
+#         self.training_completed.set()
+
+#     def run(self):
+#         print("running viewing environment")
+#         while not self.training_completed.is_set():
+#             self.model.learn(total_timesteps=10000, log_interval=1e9)
+#             self.reset_viewer()
+
+#     def set_path(self, path):
+#         self.path = path
+    
+#     def reset_viewer(self):
+#         print("Loading new policy into viewer")
+#         try:
+#             policy: Policy = torch.jit.load(self.path)
+#         except Exception as e:
+#             print("Error loading model from file. Aborting.")
+#             raise e
+#         try:
+#             self.model.policy.mlp_extractor = policy.extractor
+#             self.model.policy.action_net = policy.action_net
+#             self.model.policy.value_net = policy.value_net
+#         except Exception as e:
+#             print("Error injecting model. Cancelling training.")
+#             raise e
 
 
 class TrainingThread(threading.Thread):
@@ -73,11 +118,13 @@ class SavingThread(threading.Thread):
         model_scripted.save(model_path)
 
 
+
 num_steps = 1000000000
 section_steps = (num_steps / 1)
 reset_seconds = 30
 rl_instances = 10
 device = 'cpu'
+
 
 def get_match():
     # Calcualte steps for max seconds
@@ -100,6 +147,8 @@ def get_match():
         team_size=1,
         game_speed=1000
     )
+
+
 
 
 # Run this in mutliple terminals to train different models at the same time
@@ -129,6 +178,7 @@ def main():
     env = SB3MultipleInstanceEnv(match_func_or_matches=get_match,
                                  num_instances=rl_instances, wait_time=20)
 
+
     # Define the model
     model = PPO(policy="MlpPolicy", env=env, verbose=1, device=device)
 
@@ -144,14 +194,17 @@ def main():
             raise e
 
     # Train the model
+    #view_thread = ViewingThread()
     save_thread = SavingThread(model=model, output_path=output_path)
     train_thread = TrainingThread(model=model, num_steps=num_steps, env=env, saving_thread=save_thread)
 
     train_thread.start()
     save_thread.start()
+    #view_thread.start()
 
     train_thread.join()
     save_thread.join()
+    #view_thread.join()
     print("Main thread finished.")
 
 
