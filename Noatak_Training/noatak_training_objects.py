@@ -30,13 +30,14 @@ class NoatakReward(RewardFunction):
     def __init__(self, rewardTransition: int):
         super().__init__()
         # Define general EventReward
-        self.generalReward = EventReward(goal=1, team_goal=0.5, concede=-1, touch=.5, shot=0.5, save=1,
-                                         demo=0.25, boost_pickup=0.5)
+        self.generalReward = EventReward(goal=1, team_goal=0.5, concede=-1, touch=0.5, shot=0.75, save=1,
+                                         demo=0.25, boost_pickup=0.25)
         self.saveBoost = SaveBoostReward()
 
         # Section 1: Train to approach ball
         self.section1Functions = [self.generalReward, self.saveBoost, FaceBallReward(), TouchBallReward(), VelocityPlayerToBallReward(), LiuDistancePlayerToBallReward()]
-        self.section1Weights = [0.25, .25, 0.75, 2, 1, 2]
+        self.section1Weights = [0.25, 0.25, 0.75, 2, 1, 2]
+                            # [0.25, .1, 0.75, 4, 2, 1]
         self.section1Reward = CombinedReward(reward_functions=self.section1Functions,
                                              reward_weights=self.section1Weights)
 
@@ -48,7 +49,8 @@ class NoatakReward(RewardFunction):
 
         # Section 3: Train to get ball in opponent goal
         self.section3Functions = [self.generalReward, self.saveBoost, LiuDistanceBallToGoalReward(), VelocityBallToGoalReward()]
-        self.section3Weights = [1, .25, 2, 1]
+        self.section3Weights = [1, 0.25, 2, 1]
+                            # [1, 0.25, 2, 2]
         self.section3Reward = CombinedReward(reward_functions=self.section3Functions,
                                              reward_weights=self.section3Weights)
 

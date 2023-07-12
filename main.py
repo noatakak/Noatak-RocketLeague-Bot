@@ -25,50 +25,6 @@ from rlgym.utils.terminal_conditions.common_conditions import GoalScoredConditio
 from Noatak_Training.noatak_training_objects import NoatakReward
 
 
-# Attempted to make a viewing thread.
-
-# class ViewingThread(threading.Thread):
-#     def __init__(self):
-#         threading.Thread.__init__(self)
-#         self.training_completed = threading.Event()
-#         self.gym_env = rlgym.make(
-#             use_injector=True, 
-#             spawn_opponents=True,
-#             game_speed=1,
-#             reward_fn=NoatakReward(10000)
-#         )
-
-#         self.env = SB3SingleInstanceEnv(self.gym_env)
-#         self.model = PPO("MlpPolicy", env=self.env, verbose=1)
-
-#     def notify_training_complete(self):
-#         self.training_completed.set()
-
-#     def run(self):
-#         print("running viewing environment")
-#         while not self.training_completed.is_set():
-#             self.model.learn(total_timesteps=10000, log_interval=1e9)
-#             self.reset_viewer()
-
-#     def set_path(self, path):
-#         self.path = path
-    
-#     def reset_viewer(self):
-#         print("Loading new policy into viewer")
-#         try:
-#             policy: Policy = torch.jit.load(self.path)
-#         except Exception as e:
-#             print("Error loading model from file. Aborting.")
-#             raise e
-#         try:
-#             self.model.policy.mlp_extractor = policy.extractor
-#             self.model.policy.action_net = policy.action_net
-#             self.model.policy.value_net = policy.value_net
-#         except Exception as e:
-#             print("Error injecting model. Cancelling training.")
-#             raise e
-
-
 class TrainingThread(threading.Thread):
     def __init__(self, model, num_steps, env, saving_thread):
         threading.Thread.__init__(self)
@@ -96,7 +52,7 @@ class SavingThread(threading.Thread):
         print("starting saving thread")
         while not self.training_completed.is_set():
             self.save_model()
-            self.training_completed.wait(timeout=60)
+            self.training_completed.wait(timeout=3600*6)
         self.save_model()
         print("Saving thread finished.")
 
